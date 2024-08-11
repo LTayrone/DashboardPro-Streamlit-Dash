@@ -1,5 +1,7 @@
-import pandas as pd
 from dataset import df
+import pandas as pd
+import streamlit as st
+import time
 
 def format_number(value, prefix = " "):
     for unit in ['', 'mil']:
@@ -26,3 +28,16 @@ def gerar_dataframes_derivados(df):
     df_vendedores = pd.DataFrame(df.groupby('Vendedor')['Preço'].agg(['sum', 'count']))
 
     return df_rec_estado, df_rec_mensal, df_rec_categoria, df_vendedores
+
+# Função para converter arquivo csv
+@st.cache_data
+def convert_csv(df):
+    return df.to_csv(index=False).encode('utf-8')
+
+def mensagem_sucesso():
+    success = st.success(
+        'Arquivo baixado com sucesso',
+        icon="✅"
+        )
+    time.sleep(3)
+    success.empty()
