@@ -1,5 +1,5 @@
-from dataset import df
 import pandas as pd
+from dataset import df
 
 def format_number(value, prefix = " "):
     for unit in ['', 'mil']:
@@ -8,26 +8,21 @@ def format_number(value, prefix = " "):
         value /= 1000
     return f"{prefix} {value:.2f} milhões"
 
-# 1 - DataFrame Receita por Estado
-# Agrupamento por 'Local da compra' e soma dos preços
-df_rec_estado_agg = df.groupby('Local da compra')[["Preço"]].sum()
-# Remoção de duplicatas para obter 'lat' e 'lon'
-df_rec_estado = df.drop_duplicates(subset='Local da compra')[['Local da compra', 'lat', 'lon']]
-# Merge dos dados agregados com os dados de latitude e longitude
-df_rec_estado = df_rec_estado.merge(df_rec_estado_agg, left_on='Local da compra', right_index=True).sort_values('Preço', ascending=False)
+def gerar_dataframes_derivados(df):
+    # Recriar DataFrame Receita por Estado
+    df_rec_estado_agg = df.groupby('Local da compra')[["Preço"]].sum()
+    df_rec_estado = df.drop_duplicates(subset='Local da compra')[['Local da compra', 'lat', 'lon']]
+    df_rec_estado = df_rec_estado.merge(df_rec_estado_agg, left_on='Local da compra', right_index=True).sort_values('Preço', ascending=False)
 
-# 2 - DataFrame Receita Mensal
-df_rec_mensal = df.set_index('Data da Compra').groupby(pd.Grouper(freq='ME'))['Preço'].sum().reset_index()
-df_rec_mensal['Ano'] = df_rec_mensal['Data da Compra'].dt.year
-df_rec_mensal['Mes'] = df_rec_mensal['Data da Compra'].dt.month_name()
+    # Recriar DataFrame Receita Mensal
+    df_rec_mensal = df.set_index('Data da Compra').groupby(pd.Grouper(freq='ME'))['Preço'].sum().reset_index()
+    df_rec_mensal['Ano'] = df_rec_mensal['Data da Compra'].dt.year
+    df_rec_mensal['Mes'] = df_rec_mensal['Data da Compra'].dt.month_name()
 
-# 3 - Dataframe Receita por Categoria
-df_rec_categoria = df.groupby("Categoria do Produto")[["Preço"]].sum().sort_values("Preço", ascending=True)
+    # Recriar DataFrame Receita por Categoria
+    df_rec_categoria = df.groupby("Categoria do Produto")[["Preço"]].sum().sort_values("Preço", ascending=True)
 
-#4 DataFrame vendedores
-df_vendedores = pd.DataFrame(df.groupby('Vendedor')['Preço'].agg(['sum', 'count']))
-df_vendedores = df_vendedores.sort_values('sum', ascending=False).head(10)
-df_vendedores = df_vendedores.iloc[::-1]
+    # Recriar DataFrame Vendedores
+    df_vendedores = pd.DataFrame(df.groupby('Vendedor')['Preço'].agg(['sum', 'count']))
 
-# df_vendedores = df.groupby('Vendedor')['Preço'].agg(['sum', 'count'])
-print(df_vendedores)
+    return df_rec_estado, df_rec_mensal, df_rec_categoria, df_vendedores
